@@ -1,19 +1,22 @@
 package qango.fielddata;
 
+import qango.Player;
+
 public class Field {
     private final FieldColor color;
 
-    private String player;
+    private Player player;
 
     public Field(FieldColor color){
         this.color = color;
+        player = null;
     }
 
     public boolean hasPlayer(){
         return player != null;
     }
 
-    public String getPlayer() {
+    public Player getPlayer() {
         return player;
     }
 
@@ -21,12 +24,12 @@ public class Field {
         return color;
     }
 
-    public void setPlayer(String player) {
+    public void setPlayer(Player player) {
         this.player = player;
     }
 
     @Override
     public String toString(){
-        return player==null? color.apply("   ") : color.apply(player)/*COLOR.apply(" " + player + " ")*/;
+        return color.apply(player==null? "   " : player.toString());
     }
 }

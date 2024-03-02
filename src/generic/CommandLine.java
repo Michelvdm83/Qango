@@ -89,8 +89,11 @@ public class CommandLine {
 
         var menu = new ArrayList<String>();
         int longestOptionSize = 0;
+        int menuIteratorSpace = String.valueOf(options.length+1).length();
+        String menuItemFormat = "%" + menuIteratorSpace + "d. %s";
         for (int optionIterator = 0; optionIterator < options.length; optionIterator++) {
-            menu.add((optionIterator + 1) + ". " + options[optionIterator]);
+            menu.add(String.format(menuItemFormat, (optionIterator + 1), options[optionIterator]));
+            //menu.add((optionIterator + 1) + ". " + options[optionIterator]);
             longestOptionSize = Math.max(longestOptionSize, menu.get(optionIterator).length());
         }
         longestOptionSize += 2;
@@ -104,6 +107,9 @@ public class CommandLine {
         for (int line = 0; line < totalLines; line++) {
             for (int column = 0; column < maxColumns; column++) {
                 int menuItem = line + column * totalLines;
+                if(menuItem >= menu.size()){
+                    continue;
+                }
                 System.out.printf(optionFormat, menu.get(menuItem));
             }
             System.out.println();

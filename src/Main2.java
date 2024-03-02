@@ -1,4 +1,5 @@
 import qango.Coordinate;
+import qango.Player;
 import qango.fielddata.Field;
 import qango.fielddata.Qango6ColorZones;
 
@@ -34,7 +35,7 @@ public class Main2 {
         }
         System.out.println("\n");
 
-        String currentPlayer = "O";
+        Player currentPlayer = Player.PLAYER1;
         board.get(new Coordinate(0,0)).setPlayer(currentPlayer);
         board.get(new Coordinate(1,0)).setPlayer(currentPlayer);
         board.get(new Coordinate(0,1)).setPlayer(currentPlayer);

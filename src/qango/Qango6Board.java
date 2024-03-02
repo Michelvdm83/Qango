@@ -2,94 +2,84 @@ package qango;
 
 import qango.fielddata.Field;
 import qango.fielddata.Qango6ColorZones;
+import static qango.Player.*;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Predicate;
-
-import static generic.CommandLine.black;
-import static generic.CommandLine.white;
+import java.util.stream.Collectors;
 
 public class Qango6Board {
-    private final TreeMap<Coordinate, Field> BOARD;
-//    private final String PLAYER1;
-//    private final String PLAYER2;
+    private final TreeMap<Coordinate, Field> board;
+    private final int boardSideLength;
+    private EnumMap<Player, String> playerNames;
 
     public Qango6Board(){
-        BOARD = new TreeMap<>();
+        playerNames = new EnumMap<>(Player.class);
+        playerNames.put(PLAYER1, PLAYER1.getDefaultPlayerName());
+        playerNames.put(PLAYER2, PLAYER2.getDefaultPlayerName());
+        board = new TreeMap<>();
         for(Qango6ColorZones cz: Qango6ColorZones.values()){
             for(Coordinate c: cz.getLocations()){
-                BOARD.put(c, new Field(cz.getColor()));
+                board.put(c, new Field(cz.getColor()));
             }
         }
+        boardSideLength = board.keySet().stream().max(Coordinate::compareTo).orElse(new Coordinate(0,0)).row()+1;
+        System.out.println(boardSideLength);
     }
 
-    public void placePlayer(String player, Coordinate coordinate){
-        if(isLocationTaken(coordinate)) throw new IllegalArgumentException("Location should first be checked with isLocationTaken!");
-        BOARD.get(coordinate).setPlayer(player);
+    public void emptyBoard(){
+        board.values().forEach(field -> field.setPlayer(null));
     }
 
-    public boolean hasPlayerWonByMove(String player, Coordinate lastMove){
-        var fieldsTakenByPlayer = BOARD.entrySet().stream().filter
-                (e -> e.getValue().hasPlayer() && e.getValue().getPlayer().equals(player)).toList();
+    public void placePlayer(Player player, Coordinate coordinate){
+        if(locationTaken(coordinate)) throw new IllegalArgumentException("Location should first be checked with locationTaken!");
+        board.get(coordinate).setPlayer(player);
+    }
 
-        var fieldsTakenByPlayer2 = BOARD.keySet().stream().filter
-                (e -> BOARD.get(e).hasPlayer() && BOARD.get(e).getPlayer().equals(player)).toList();
+    private boolean wonByColorZone(Player player, Coordinate lastMove){
+        var fieldsTakenByPlayer = board.keySet().stream().filter
+                (e -> board.get(e).hasPlayer() && board.get(e).getPlayer().equals(player)).toList();
 
         var colorZone = Qango6ColorZones.getZoneOfCoordinate(lastMove);
-        if(new HashSet<>(fieldsTakenByPlayer2).containsAll(Arrays.asList(colorZone.getLocations()))) {
-            return true;
-        }
-        if(fieldsTakenByPlayer.size() < 5) return false;
-
-
-        return true;
+        return new HashSet<>(fieldsTakenByPlayer).containsAll(Arrays.asList(colorZone.getLocations()));
     }
 
-    private boolean playerWon(String player, Coordinate lastMove){
+    public boolean playerWon(Player player, Coordinate lastMove){
         int row = lastMove.row();
-        Predicate<Coordinate> rowFilter = coordinate -> coordinate.row() == row;
-        return checkLineForWin(player, rowFilter);
-    }
-
-    private boolean checkLineForWin(String player, Predicate<Coordinate> filter){
-        var coordList = BOARD.keySet().stream().filter(filter).toList();
-
-        int concurrentFieldsTaken = 0;
-        for(Coordinate c: coordList){
-            if(BOARD.get(c).getPlayer().equals(player)){
-                concurrentFieldsTaken++;
-                if(concurrentFieldsTaken >= 5) return true;
-            } else{
-                concurrentFieldsTaken = 0;
-            }
-        }
-        return false;
-    }
-
-    private boolean winRowCheck(String player, Coordinate lastMove){
-        int row = lastMove.row();
-        Predicate<Coordinate> rowCheck = coordinate -> coordinate.row() == row;
-
-        var coordList = BOARD.keySet().stream().filter(c -> c.row() == row).toList();
-        int concurrentFieldsTaken = 0;
-        for(Coordinate c: coordList){
-            if(BOARD.get(c).getPlayer().equals(player)){
-                concurrentFieldsTaken++;
-                if(concurrentFieldsTaken >= 5) return true;
-            } else{
-                concurrentFieldsTaken = 0;
-            }
-        }
-        return false;
-    }
-
-    private boolean winColumnCheck(String player, Coordinate lastMove){
         int column = lastMove.column();
-        var coordList = BOARD.keySet().stream().filter(c -> c.column() == column).toList();
+
+        Predicate<Coordinate> rowFilter = coordinate -> coordinate.row() == row;
+        Predicate<Coordinate> columnFilter = coordinate -> coordinate.column() == column;
+        Predicate<Coordinate> diagonalSlashFilter = coordinate -> coordinate.column() + coordinate.row() == column + row;
+        Predicate<Coordinate> diagonalBackSlashFilter = coordinate -> coordinate.column() - coordinate.row() == column - row;
+
+        boolean straightLineWin = wonByLine(player, rowFilter) || wonByLine(player, columnFilter);
+        boolean diagonalLineWin = wonByLine(player, diagonalSlashFilter) || wonByLine(player, diagonalBackSlashFilter);
+
+        return straightLineWin || diagonalLineWin || wonBySquare(player, lastMove) || wonByColorZone(player, lastMove);
+    }
+
+    private boolean wonBySquare(Player player, Coordinate lastMove){
+        int row = lastMove.row();
+        int column = lastMove.column();
+        var startingCoordinates = board.keySet().stream().filter(c -> (c.row() == row || c.row() == row-1) && (c.column() == column || c.column() == column-1)).toList();
+        // voor elke coordinate in bovenstaande lijst: [+0,+0][+0,+1][+1,+0][+1,+1] allemaal player dan true returnen
+
+        for(Coordinate coordinate: startingCoordinates){
+            if(board.keySet().stream().filter(coord ->
+                    (coord.row() == coordinate.row() || coord.row() == coordinate.row()+1) &&
+                            (coord.column() == coordinate.column() || coord.column() == coordinate.column()+1) &&
+                            board.get(coord).hasPlayer() && board.get(coord).getPlayer().equals(player)).count() == 4) return true;
+        }
+        return false;
+    }
+
+    private boolean wonByLine(Player player, Predicate<Coordinate> filter){
+        var coordList = board.keySet().stream().filter(filter).toList();
+
         int concurrentFieldsTaken = 0;
         for(Coordinate c: coordList){
-            if(BOARD.get(c).getPlayer().equals(player)){
+            if(board.get(c).hasPlayer() && board.get(c).getPlayer().equals(player)){
                 concurrentFieldsTaken++;
                 if(concurrentFieldsTaken >= 5) return true;
             } else{
@@ -99,47 +89,48 @@ public class Qango6Board {
         return false;
     }
 
-    private boolean winDiagonolSlashCheck(String player, Coordinate lastMove){
-        var coordList = BOARD.keySet().stream().filter(c -> c.column() + c.row() == lastMove.column() + lastMove.row()).toList();
-        int concurrentFieldsTaken = 0;
-        for(Coordinate c: coordList){
-            if(BOARD.get(c).getPlayer().equals(player)){
-                concurrentFieldsTaken++;
-                if(concurrentFieldsTaken >= 5) return true;
-            } else{
-                concurrentFieldsTaken = 0;
-            }
-        }
-        return false;
+    public boolean locationTaken(Coordinate location){
+        if(!board.containsKey(location))throw new IllegalArgumentException("Coordinate " + location + " is not on the board!");
+        return board.get(location).hasPlayer();
     }
 
-    private boolean winDiagonalBackslashCheck(String player, Coordinate lastMove){
-        var coordList = BOARD.keySet().stream().filter(c -> c.column() - c.row() == lastMove.column() - lastMove.row()).toList();
-        int concurrentFieldsTaken = 0;
-        for(Coordinate c: coordList){
-            if(BOARD.get(c).getPlayer().equals(player)){
-                concurrentFieldsTaken++;
-                if(concurrentFieldsTaken >= 5) return true;
-            } else{
-                concurrentFieldsTaken = 0;
-            }
-        }
-        return false;
+    public ArrayList<Coordinate> freeLocations(){
+        return board.keySet().stream().filter(coordinate -> !board.get(coordinate).hasPlayer()).collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public boolean isLocationTaken(Coordinate location){
-        if(!BOARD.containsKey(location))throw new IllegalArgumentException("Coordinate " + location + " is not on the board!");
-        return BOARD.get(location).hasPlayer();
+    public TreeMap<Coordinate, Field> freePlaces(){
+        var freeLocs = board.keySet().stream().filter(coordinate -> !board.get(coordinate).hasPlayer()).toList();
+        TreeMap<Coordinate, Field> mapOfFreeLocs = new TreeMap<>();
+        for(Coordinate c: freeLocs){
+            mapOfFreeLocs.put(c, board.get(c));
+        }
+        return mapOfFreeLocs;
+    }
+
+    public void setPlayerName(Player player, String name){
+        playerNames.put(player, name);
+    }
+
+    public String getPlayerName(Player player){
+        return playerNames.get(player);
     }
 
     @Override
     public String toString(){
         StringBuilder boardAsString = new StringBuilder();
 
-        int currentRow = 0;//coordinaten voor invoer a la schaakbord ook printen
-        for(Coordinate c: BOARD.keySet()){
-            if(currentRow != c.row())boardAsString.append("\n");
-            boardAsString.append(BOARD.get(c));
+        //coordinaten voor invoer a la schaakbord ook printen
+        boardAsString.append("r\\c");
+        for(int i = 0; i < boardSideLength; i++){
+            boardAsString.append(String.format(" %d ", i));
+        }
+
+        int currentRow = -1;
+        for(Coordinate c: board.keySet()){
+            if(currentRow != c.row()){
+                boardAsString.append(String.format("\n %d ", c.row()));
+            }
+            boardAsString.append(board.get(c));
             currentRow = c.row();
         }
         return boardAsString.toString();

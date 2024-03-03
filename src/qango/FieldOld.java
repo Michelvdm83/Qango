@@ -1,7 +1,5 @@
 package qango;
 
-import qango.fielddata.FieldColor;
-
 import static generic.CommandLine.black;
 
 public class FieldOld {

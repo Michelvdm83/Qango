@@ -1,14 +1,11 @@
 package qango;
 
-import qango.fielddata.Field;
-
 import java.util.ArrayList;
-
 import static generic.CommandLine.*;
 import static qango.Player.*;
 
 public class QangoTUI {
-    private Qango6Board board;
+    private final Qango6Board board;
 
     public static void main(String[] args) {
         QangoTUI qango = new QangoTUI();
@@ -32,8 +29,10 @@ public class QangoTUI {
     }
 
     private void play(){
+        board.emptyBoard();
         Player currentPlayer = null;
         Coordinate lastMove;
+
         do{
             System.out.println(board);
             currentPlayer = (currentPlayer == PLAYER1)? PLAYER2 : PLAYER1;
@@ -42,6 +41,7 @@ public class QangoTUI {
 
         }while( !(board.playerWon(currentPlayer, lastMove) || board.freeLocations().isEmpty()) );
 
+        System.out.println(board);
         if(board.playerWon(currentPlayer, lastMove)){
             System.out.printf("Congratulation %s, you won!\n", board.getPlayerName(currentPlayer));
         }else{
@@ -50,16 +50,27 @@ public class QangoTUI {
     }
 
     private Coordinate askForMove(Player player){
-//        var locations = board.freePlaces();
+        do{
+            String moveChosen = askForString(String.format("%s, what is your next move? ", board.getPlayerName(player))).trim().toLowerCase();
+            if(moveChosen.length() != 2){
+                System.out.println("Please enter the location in a notation like: a1");
+            }else{
+                int row = moveChosen.charAt(0)-'a';
+                int column = moveChosen.charAt(1)-'0';
+                Coordinate chosenCoordinate = new Coordinate(row, column);
 
-        var freeLocations = board.freeLocations();
-        String[] choices = freeLocations.stream().map(Coordinate::toString).toArray(String[]::new);
-        //String[] choices = locations.entrySet().stream().map(e -> e.getValue().getColor().andThen(black).apply(e.getKey().toString())).toArray(String[]::new);
-
-//        locations.
-        int choice = askForIntFromMenu(String.format("%s, what is your next move? ", board.getPlayerName(player)), choices);
-
-        return freeLocations.get(choice-1);
+                try {
+                    if (board.locationTaken(chosenCoordinate)) {
+                        System.out.println("Please enter an empty location");
+                    } else {
+                        return chosenCoordinate;
+                    }
+                }catch (IllegalArgumentException e){
+                    System.out.println(e.getMessage());
+                    System.out.println("Please enter valid locations only!");
+                }
+            }
+        }while(true);
     }
 
     private int getChoiceFromMenu(){
@@ -77,7 +88,3 @@ public class QangoTUI {
         board.setPlayerName(PLAYER2, askForString("input name for player 2(black): "));
     }
 }
-/*
-Coordinates in schaaknotatie maken: bvb a1 a2 b1
-askForMove aanpassen naar String van lengte 2 vragen, dus de a1 a2 b1 wijze
- */

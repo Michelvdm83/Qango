@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 public class Qango6Board {
     private final TreeMap<Coordinate, Field> board;
     private final int boardSideLength;
-    private EnumMap<Player, String> playerNames;
+    private final EnumMap<Player, String> playerNames;
 
     public Qango6Board(){
         playerNames = new EnumMap<>(Player.class);
@@ -63,7 +63,6 @@ public class Qango6Board {
         int row = lastMove.row();
         int column = lastMove.column();
         var startingCoordinates = board.keySet().stream().filter(c -> (c.row() == row || c.row() == row-1) && (c.column() == column || c.column() == column-1)).toList();
-        // voor elke coordinate in bovenstaande lijst: [+0,+0][+0,+1][+1,+0][+1,+1] allemaal player dan true returnen
 
         for(Coordinate coordinate: startingCoordinates){
             if(board.keySet().stream().filter(coord ->
@@ -98,15 +97,6 @@ public class Qango6Board {
         return board.keySet().stream().filter(coordinate -> !board.get(coordinate).hasPlayer()).collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public TreeMap<Coordinate, Field> freePlaces(){
-        var freeLocs = board.keySet().stream().filter(coordinate -> !board.get(coordinate).hasPlayer()).toList();
-        TreeMap<Coordinate, Field> mapOfFreeLocs = new TreeMap<>();
-        for(Coordinate c: freeLocs){
-            mapOfFreeLocs.put(c, board.get(c));
-        }
-        return mapOfFreeLocs;
-    }
-
     public void setPlayerName(Player player, String name){
         playerNames.put(player, name);
     }
@@ -119,8 +109,7 @@ public class Qango6Board {
     public String toString(){
         StringBuilder boardAsString = new StringBuilder();
 
-        //coordinaten voor invoer a la schaakbord ook printen
-        boardAsString.append("r\\c");
+        boardAsString.append("  ");
         for(int i = 0; i < boardSideLength; i++){
             boardAsString.append(String.format(" %d ", i));
         }
@@ -128,7 +117,7 @@ public class Qango6Board {
         int currentRow = -1;
         for(Coordinate c: board.keySet()){
             if(currentRow != c.row()){
-                boardAsString.append(String.format("\n %d ", c.row()));
+                boardAsString.append(String.format("\n%c ", 'a'+c.row()));
             }
             boardAsString.append(board.get(c));
             currentRow = c.row();

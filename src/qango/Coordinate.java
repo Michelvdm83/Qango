@@ -4,7 +4,7 @@ public record Coordinate(int row, int column) implements Comparable<Coordinate>{
 
     @Override
     public String toString(){
-        return String.format("r%d:c%d", row, column);
+        return String.format("%c%d", 'a'+row, column);
     }
 
     @Override

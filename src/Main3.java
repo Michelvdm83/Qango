@@ -32,6 +32,7 @@ public class Main3 {
         System.out.println("Player2 move 0,3 win?" + game.playerWon(PLAYER2, new Coordinate(0, 3)));
 
         System.out.println(askForMove(PLAYER1));
+        System.out.println(askForMove(PLAYER2));
     }
 
     private static Coordinate askForMove(Player player){
@@ -43,8 +44,3 @@ public class Main3 {
         return freeLocations.get(choice-1);
     }
 }
-/*
-to do:
-QangoTUI maken
-Player wijzigen van String naar enum?
- */

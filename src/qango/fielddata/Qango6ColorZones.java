@@ -1,10 +1,6 @@
 package qango.fielddata;
 
 import qango.Coordinate;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import static qango.fielddata.FieldColor.*;
 
 public enum Qango6ColorZones {
@@ -41,13 +37,10 @@ public enum Qango6ColorZones {
             case ZONE_YELLOW2 -> new Coordinate[]{new Coordinate(5,3), new Coordinate(4,4), new Coordinate(3,5)};
             case ZONE_GREEN2 -> new Coordinate[]{new Coordinate(3,3), new Coordinate(3,4), new Coordinate(4,3)};
         };
-
-        locate = List.of(new Coordinate(3,3), new Coordinate(3,4), new Coordinate(4,3));
     }
 
     private final FieldColor COLOR;
     private final Coordinate[] LOCATIONS;
-    private final List<Coordinate> locate;
 
     public FieldColor getColor() {
         return COLOR;

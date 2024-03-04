@@ -22,7 +22,7 @@ public class QangoTUI {
             switch(getChoiceFromMenu()){
                 case 1 -> setPlayerNames();
                 case 2 -> play();
-                case 3 -> System.out.println(board);
+                case 3 -> System.out.println(board.toBigString());
                 default-> keepPlaying = false;
             }
         }while(keepPlaying);
@@ -34,14 +34,14 @@ public class QangoTUI {
         Coordinate lastMove;
 
         do{
-            System.out.println(board);
+            System.out.println(board.toBigString());
             currentPlayer = (currentPlayer == PLAYER1)? PLAYER2 : PLAYER1;
             lastMove = askForMove(currentPlayer);
             board.placePlayer(currentPlayer, lastMove);
 
         }while( !(board.playerWon(currentPlayer, lastMove) || board.freeLocations().isEmpty()) );
 
-        System.out.println(board);
+        System.out.println(board.toBigString());
         if(board.playerWon(currentPlayer, lastMove)){
             System.out.printf("Congratulation %s, you won!\n", board.getPlayerName(currentPlayer));
         }else{

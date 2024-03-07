@@ -12,7 +12,8 @@ import java.util.stream.IntStream;
 
 public class Qango6Board {
     private final TreeMap<Coordinate, Field> board;
-    private final int boardSideLength;
+    private final int lowestCoordinateNumber;
+    private final int highestCoordinateNumber;
     private final EnumMap<Player, String> playerNames;
 
     public Qango6Board(){
@@ -25,7 +26,10 @@ public class Qango6Board {
                 board.put(c, new Field(cz.getColor()));
             }
         }
-        boardSideLength = board.keySet().stream().max(Coordinate::compareTo).orElse(new Coordinate(0,0)).row()+1;
+        lowestCoordinateNumber = board.firstKey().row();
+        highestCoordinateNumber = board.lastKey().row();//board.keySet().stream().max(Coordinate::compareTo).orElse(new Coordinate(0,0)).row()+1;
+        System.out.println(board.lastKey().row());
+        System.out.println(board.firstKey().row());
     }
 
     public void emptyBoard(){
@@ -108,10 +112,10 @@ public class Qango6Board {
 
     @Override
     public String toString(){
-        StringBuilder boardAsString = new StringBuilder();
+        String rowLegendFormat = "%c ";
+        StringBuilder boardAsString = new StringBuilder(String.format(rowLegendFormat, ' '));
 
-        boardAsString.append("  ");
-        for(int i = 0; i < boardSideLength; i++){
+        for(int i = 0; i <= highestCoordinateNumber; i++){
             boardAsString.append(String.format(" %d ", i));
         }
 
@@ -127,60 +131,76 @@ public class Qango6Board {
     }
 
     public String toBigString(){
-        StringBuilder boardAsString = new StringBuilder("  ");
+        String rowLegendFormat = "%c ";
+        StringBuilder boardAsString = new StringBuilder(String.format(rowLegendFormat, ' '));
 
         //printing the numbers for the coordinates
-        IntStream.range(0,boardSideLength).forEachOrdered(i -> boardAsString.append(String.format("    %d    ", i)));
+        IntStream.rangeClosed(0, highestCoordinateNumber).forEachOrdered(i -> boardAsString.append(String.format("    %d    ", i)));
         boardAsString.append("\n");
 
-        int currentRow = -1;
-        StringBuilder rowPart1 = new StringBuilder();
-        StringBuilder rowPart2 = new StringBuilder();
-        StringBuilder rowPart3 = new StringBuilder();
-        StringBuilder[] rows = new StringBuilder[3];
+        //int currentRow = -1;
+        StringBuilder[] linesPerRow = new StringBuilder[3];
 
-        for(Coordinate c: board.keySet()){
-            if(currentRow != c.row()){
-                rowPart1.delete(0, rowPart1.length()).append("  ");
-                rowPart2 = new StringBuilder(String.format("%c ", 'a'+c.row()));
-                rowPart3.setLength(0);rowPart3.append("  ");
+        IntStream.rangeClosed(0, highestCoordinateNumber).forEachOrdered(i -> {
+            linesPerRow[0] = new StringBuilder("  ");
+            linesPerRow[1] = new StringBuilder(String.format(rowLegendFormat, 'a'+i));
+            linesPerRow[2] = new StringBuilder("  ");
 
-                rows[0] = new StringBuilder("  ");
-                rows[1] = new StringBuilder(String.format("%c ", 'a'+c.row()));
-                rows[2] = new StringBuilder("  ");
-                currentRow = c.row();
-            }
+            board.keySet().stream().filter(c -> c.row() == i).forEach(coord -> {
+                FieldColor zoneColor = board.get(coord).getColor();
+                linesPerRow[0].append(zoneColor.apply("   ").repeat(3));
+                linesPerRow[1].append(zoneColor.apply("   "));
+                linesPerRow[1].append(board.get(coord).hasPlayer()? board.get(coord).getPlayer().asBackgroundColor().apply("   ") : zoneColor.apply("   "));
+                linesPerRow[1].append(zoneColor.apply("   "));
+                linesPerRow[2].append(zoneColor.apply("   ").repeat(3));
+            });
 
-            FieldColor zoneColor = board.get(c).getColor();
-            rows[0].append(zoneColor.apply("   ").repeat(3));
-            rows[1].append(zoneColor.apply("   "));
-            if(board.get(c).hasPlayer()){
-                rows[1].append(board.get(c).getPlayer().asBackgroundColor().apply("   "));
-            }else{
-                rows[1].append(zoneColor.apply("   "));
-            }
-            rows[1].append(zoneColor.apply("   "));
-            rows[2].append(zoneColor.apply("   ").repeat(3));
+            Arrays.stream(linesPerRow).forEach(sb -> boardAsString.append(sb).append("\n"));
+        });
 
-            rowPart1.append(zoneColor.apply("   ").repeat(3));
-            rowPart2.append(zoneColor.apply("   "));
-            if(board.get(c).hasPlayer()){
-                rowPart2.append(board.get(c).getPlayer().asBackgroundColor().apply("   "));
-            }else{
-                rowPart2.append(zoneColor.apply("   "));
-            }
-            rowPart2.append(zoneColor.apply("   "));
-            rowPart3.append(zoneColor.apply("   ").repeat(3));
+//        for(Coordinate c: board.keySet()){
+//            if(currentRow != c.row()){
+//                linesPerRow[0] = new StringBuilder("  ");
+//                linesPerRow[1] = new StringBuilder(String.format("%c ", 'a'+c.row()));
+//                linesPerRow[2] = new StringBuilder("  ");
+//                currentRow = c.row();
+//            }
+//            FieldColor zoneColor = board.get(c).getColor();
+//            linesPerRow[0].append(zoneColor.apply("   ").repeat(3));
+//            linesPerRow[1].append(zoneColor.apply("   "));
+//            linesPerRow[1].append(board.get(c).hasPlayer()? board.get(c).getPlayer().asBackgroundColor().apply("   ") : zoneColor.apply("   "));
+//            linesPerRow[1].append(zoneColor.apply("   "));
+//            linesPerRow[2].append(zoneColor.apply("   ").repeat(3));
+//
+//            if(c.column() == highestCoordinateNumber-1){
+//                Arrays.stream(linesPerRow).forEach(sb -> boardAsString.append(sb).append("\n"));
+//            }
+//        }
+        return boardAsString.toString();
+    }
 
-            if(c.column() == boardSideLength-1){
-                boardAsString.append(rows[0]).append("\n");
-                boardAsString.append(rows[1]).append("\n");
-                boardAsString.append(rows[2]).append("\n");
-//                boardAsString.append(rowPart1).append("\n");
-//                boardAsString.append(rowPart2).append("\n");
-//                boardAsString.append(rowPart3).append("\n");
-            }
-        }
+    public String toNewBigString(){
+        String rowLegendFormat = "%c ";
+        StringBuilder boardAsString = new StringBuilder(String.format(rowLegendFormat, ' '));
+
+        //printing the numbers for the coordinates
+        IntStream.rangeClosed(lowestCoordinateNumber, highestCoordinateNumber).forEachOrdered(i -> boardAsString.append(String.format("    %d    ", i)));
+        boardAsString.append("\n");
+
+        StringBuilder[] linesPerRow = new StringBuilder[3];
+
+        IntStream.rangeClosed(lowestCoordinateNumber, highestCoordinateNumber).forEachOrdered(i -> {
+            linesPerRow[0] = new StringBuilder(String.format(rowLegendFormat, ' '));
+            linesPerRow[1] = new StringBuilder(String.format(rowLegendFormat, 'a'+i));
+            linesPerRow[2] = new StringBuilder(String.format(rowLegendFormat, ' '));
+
+            board.keySet().stream().filter(c -> c.row() == i).forEach(coord -> {
+                String[] fieldLines = board.get(coord).toBigString().split("\n");
+                IntStream.range(0, linesPerRow.length).forEachOrdered(iterator -> linesPerRow[iterator].append(fieldLines[iterator]));
+            });
+
+            Arrays.stream(linesPerRow).forEach(sb -> boardAsString.append(sb).append("\n"));
+        });
 
         return boardAsString.toString();
     }

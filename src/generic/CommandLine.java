@@ -159,6 +159,13 @@ public class CommandLine {
         return (s -> color + s + RESET.getColor());
     }
 
+    public static UnaryOperator<String> getNewRGBColorBackgroundOperator(int r, int g, int b) {
+        if ((r < 0 || g < 0 || b < 0) || (r > 255 || g > 255 || b > 255))
+            throw new IllegalArgumentException("rgb values range from 0-255 inclusive!");
+        String color = "\u001B[48;2;" + r + ";" + g + ";" + b + "m";
+        return (s -> color + s + RESET.getColor());
+    }
+
     public static UnaryOperator<String> red = s -> getStringColored(s, RED);
     public static UnaryOperator<String> green = s -> getStringColored(s, GREEN);
     public static UnaryOperator<String> cyan = s -> getStringColored(s, CYAN);

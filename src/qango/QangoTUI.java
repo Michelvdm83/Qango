@@ -22,7 +22,7 @@ public class QangoTUI {
             switch(getChoiceFromMenu()){
                 case 1 -> setPlayerNames();
                 case 2 -> play();
-                case 3 -> System.out.println(board.toBigString());
+                case 3 -> System.out.println(board.toNewBigString());
                 default-> keepPlaying = false;
             }
         }while(keepPlaying);
@@ -88,3 +88,12 @@ public class QangoTUI {
         board.setPlayerName(PLAYER2, askForString("input name for player 2(black): "));
     }
 }
+
+/*
+to do:
+logische plek maken voor de ON_FIELD string en de string wanneer er geen player op een field staat
+keuze toevoegen voor normale grote of "ingezoomd" bord >>> adv deze keuze value setten, zodat toString automatisch het juiste teruggeeft
+"lengte" van een veld als variabele opslaan: is afhankelijk van bovenstaande keuze
+coordinaten laten lopen van 1 tot 6 ipv 0 tot 5
+mogelijk toBigString ipv StringBuilder[] met stream hetzelfde te krijgen?
+ */

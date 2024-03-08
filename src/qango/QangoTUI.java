@@ -1,11 +1,15 @@
 package qango;
 
 import java.util.ArrayList;
+import java.util.function.Function;
+
 import static generic.CommandLine.*;
 import static qango.Player.*;
 
 public class QangoTUI {
     private final Qango6Board board;
+    private final Function<Boolean, String> showBoard;
+    private boolean zoomed = false;
 
     public static void main(String[] args) {
         QangoTUI qango = new QangoTUI();
@@ -14,16 +18,28 @@ public class QangoTUI {
 
     public QangoTUI(){
         board = new Qango6Board();
+        showBoard = zoomed -> zoomed? board.toBigString() : board.toString();
     }
 
     public void start(){
+        var options = new ArrayList<String>();
+        options.add("input playernames");
+        options.add("start game");
+        options.add("show gameboard");
+        options.add("enable zoomed view");
+        options.add("quit game");
+
         boolean keepPlaying = true;
         do{
-            switch(getChoiceFromMenu()){
+            switch(askForIntFromMenu(options.toArray(String[]::new))){
                 case 1 -> setPlayerNames();
                 case 2 -> play();
-                case 3 -> System.out.println(board.toNewBigString());
-                default-> keepPlaying = false;
+                case 3 -> System.out.println(showBoard.apply(zoomed));
+                case 4 -> {
+                    zoomed = !zoomed;
+                    options.set(3, zoomed? "disable zoomed view" : "enable zoomed view");
+                }
+                case 5 -> keepPlaying = false;
             }
         }while(keepPlaying);
     }
@@ -34,14 +50,14 @@ public class QangoTUI {
         Coordinate lastMove;
 
         do{
-            System.out.println(board.toBigString());
+            System.out.println(showBoard.apply(zoomed));
             currentPlayer = (currentPlayer == PLAYER1)? PLAYER2 : PLAYER1;
             lastMove = askForMove(currentPlayer);
             board.placePlayer(currentPlayer, lastMove);
 
         }while( !(board.playerWon(currentPlayer, lastMove) || board.freeLocations().isEmpty()) );
 
-        System.out.println(board.toBigString());
+        System.out.println(showBoard.apply(zoomed));
         if(board.playerWon(currentPlayer, lastMove)){
             System.out.printf("Congratulation %s, you won!\n", board.getPlayerName(currentPlayer));
         }else{
@@ -71,16 +87,6 @@ public class QangoTUI {
                 }
             }
         }while(true);
-    }
-
-    private int getChoiceFromMenu(){
-        var options = new ArrayList<String>();
-        options.add("input playernames");
-        options.add("start game");
-        options.add("show gameboard");
-        options.add("quit game");
-
-        return askForIntFromMenu(options.toArray(String[]::new));
     }
 
     private void setPlayerNames(){

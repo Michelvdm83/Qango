@@ -115,18 +115,15 @@ public class Qango6Board {
         String rowLegendFormat = "%c ";
         StringBuilder boardAsString = new StringBuilder(String.format(rowLegendFormat, ' '));
 
-        for(int i = 0; i <= highestCoordinateNumber; i++){
-            boardAsString.append(String.format(" %d ", i));
-        }
+        IntStream.rangeClosed(lowestCoordinateNumber, highestCoordinateNumber).forEachOrdered(i -> boardAsString.append(String.format(" %d ", i)));
+        boardAsString.append("\n");
 
-        int currentRow = -1;
-        for(Coordinate c: board.keySet()){
-            if(currentRow != c.row()){
-                boardAsString.append(String.format("\n%c ", 'a'+c.row()));
-            }
-            boardAsString.append(board.get(c));
-            currentRow = c.row();
-        }
+        IntStream.rangeClosed(lowestCoordinateNumber, highestCoordinateNumber).forEachOrdered(i -> {
+            boardAsString.append(String.format("%c ", 'a'+i));
+            board.keySet().stream().filter(c -> c.row() == i).forEach(coord -> boardAsString.append(board.get(coord)));
+            boardAsString.append("\n");
+        });
+
         return boardAsString.toString();
     }
 
@@ -135,13 +132,12 @@ public class Qango6Board {
         StringBuilder boardAsString = new StringBuilder(String.format(rowLegendFormat, ' '));
 
         //printing the numbers for the coordinates
-        IntStream.rangeClosed(0, highestCoordinateNumber).forEachOrdered(i -> boardAsString.append(String.format("    %d    ", i)));
+        IntStream.rangeClosed(lowestCoordinateNumber, highestCoordinateNumber).forEachOrdered(i -> boardAsString.append(String.format("    %d    ", i)));
         boardAsString.append("\n");
 
-        //int currentRow = -1;
         StringBuilder[] linesPerRow = new StringBuilder[3];
 
-        IntStream.rangeClosed(0, highestCoordinateNumber).forEachOrdered(i -> {
+        IntStream.rangeClosed(lowestCoordinateNumber, highestCoordinateNumber).forEachOrdered(i -> {
             linesPerRow[0] = new StringBuilder("  ");
             linesPerRow[1] = new StringBuilder(String.format(rowLegendFormat, 'a'+i));
             linesPerRow[2] = new StringBuilder("  ");
@@ -157,25 +153,6 @@ public class Qango6Board {
 
             Arrays.stream(linesPerRow).forEach(sb -> boardAsString.append(sb).append("\n"));
         });
-
-//        for(Coordinate c: board.keySet()){
-//            if(currentRow != c.row()){
-//                linesPerRow[0] = new StringBuilder("  ");
-//                linesPerRow[1] = new StringBuilder(String.format("%c ", 'a'+c.row()));
-//                linesPerRow[2] = new StringBuilder("  ");
-//                currentRow = c.row();
-//            }
-//            FieldColor zoneColor = board.get(c).getColor();
-//            linesPerRow[0].append(zoneColor.apply("   ").repeat(3));
-//            linesPerRow[1].append(zoneColor.apply("   "));
-//            linesPerRow[1].append(board.get(c).hasPlayer()? board.get(c).getPlayer().asBackgroundColor().apply("   ") : zoneColor.apply("   "));
-//            linesPerRow[1].append(zoneColor.apply("   "));
-//            linesPerRow[2].append(zoneColor.apply("   ").repeat(3));
-//
-//            if(c.column() == highestCoordinateNumber-1){
-//                Arrays.stream(linesPerRow).forEach(sb -> boardAsString.append(sb).append("\n"));
-//            }
-//        }
         return boardAsString.toString();
     }
 

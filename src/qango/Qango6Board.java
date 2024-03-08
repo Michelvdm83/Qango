@@ -1,9 +1,7 @@
 package qango;
 
 import qango.fielddata.Field;
-import qango.fielddata.FieldColor;
 import qango.fielddata.Qango6ColorZones;
-import static qango.Player.*;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -14,12 +12,8 @@ public class Qango6Board {
     private final TreeMap<Coordinate, Field> board;
     private final int lowestCoordinateNumber;
     private final int highestCoordinateNumber;
-    private final EnumMap<Player, String> playerNames;
 
     public Qango6Board(){
-        playerNames = new EnumMap<>(Player.class);
-        playerNames.put(PLAYER1, PLAYER1.getDefaultPlayerName());
-        playerNames.put(PLAYER2, PLAYER2.getDefaultPlayerName());
         board = new TreeMap<>();
         for(Qango6ColorZones cz: Qango6ColorZones.values()){
             for(Coordinate c: cz.getLocations()){
@@ -27,9 +21,7 @@ public class Qango6Board {
             }
         }
         lowestCoordinateNumber = board.firstKey().row();
-        highestCoordinateNumber = board.lastKey().row();//board.keySet().stream().max(Coordinate::compareTo).orElse(new Coordinate(0,0)).row()+1;
-        System.out.println(board.lastKey().row());
-        System.out.println(board.firstKey().row());
+        highestCoordinateNumber = board.lastKey().row();
     }
 
     public void emptyBoard(){
@@ -42,11 +34,8 @@ public class Qango6Board {
     }
 
     private boolean wonByColorZone(Player player, Coordinate lastMove){
-        var fieldsTakenByPlayer = board.keySet().stream().filter
-                (e -> board.get(e).hasPlayer() && board.get(e).getPlayer().equals(player)).toList();
-
-        var colorZone = Qango6ColorZones.getZoneOfCoordinate(lastMove);
-        return new HashSet<>(fieldsTakenByPlayer).containsAll(Arrays.asList(colorZone.getLocations()));
+        return Arrays.stream(Qango6ColorZones.getZoneOfCoordinate(lastMove).getLocations()).allMatch(c ->
+                board.get(c).hasPlayer() && board.get(c).getPlayer().equals(player));
     }
 
     public boolean playerWon(Player player, Coordinate lastMove){
@@ -102,14 +91,6 @@ public class Qango6Board {
         return board.keySet().stream().filter(coordinate -> !board.get(coordinate).hasPlayer()).collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public void setPlayerName(Player player, String name){
-        playerNames.put(player, name);
-    }
-
-    public String getPlayerName(Player player){
-        return playerNames.get(player);
-    }
-
     @Override
     public String toString(){
         String rowLegendFormat = "%c ";
@@ -128,35 +109,6 @@ public class Qango6Board {
     }
 
     public String toBigString(){
-        String rowLegendFormat = "%c ";
-        StringBuilder boardAsString = new StringBuilder(String.format(rowLegendFormat, ' '));
-
-        //printing the numbers for the coordinates
-        IntStream.rangeClosed(lowestCoordinateNumber, highestCoordinateNumber).forEachOrdered(i -> boardAsString.append(String.format("    %d    ", i)));
-        boardAsString.append("\n");
-
-        StringBuilder[] linesPerRow = new StringBuilder[3];
-
-        IntStream.rangeClosed(lowestCoordinateNumber, highestCoordinateNumber).forEachOrdered(i -> {
-            linesPerRow[0] = new StringBuilder("  ");
-            linesPerRow[1] = new StringBuilder(String.format(rowLegendFormat, 'a'+i));
-            linesPerRow[2] = new StringBuilder("  ");
-
-            board.keySet().stream().filter(c -> c.row() == i).forEach(coord -> {
-                FieldColor zoneColor = board.get(coord).getColor();
-                linesPerRow[0].append(zoneColor.apply("   ").repeat(3));
-                linesPerRow[1].append(zoneColor.apply("   "));
-                linesPerRow[1].append(board.get(coord).hasPlayer()? board.get(coord).getPlayer().asBackgroundColor().apply("   ") : zoneColor.apply("   "));
-                linesPerRow[1].append(zoneColor.apply("   "));
-                linesPerRow[2].append(zoneColor.apply("   ").repeat(3));
-            });
-
-            Arrays.stream(linesPerRow).forEach(sb -> boardAsString.append(sb).append("\n"));
-        });
-        return boardAsString.toString();
-    }
-
-    public String toNewBigString(){
         String rowLegendFormat = "%c ";
         StringBuilder boardAsString = new StringBuilder(String.format(rowLegendFormat, ' '));
 

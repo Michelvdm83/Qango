@@ -1,6 +1,7 @@
 package qango;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.function.Function;
 
 import static generic.CommandLine.*;
@@ -11,6 +12,8 @@ public class QangoTUI {
     private final Function<Boolean, String> showBoard;
     private boolean zoomed = false;
 
+    private final EnumMap<Player, String> playerNames;
+
     public static void main(String[] args) {
         QangoTUI qango = new QangoTUI();
         qango.start();
@@ -19,6 +22,9 @@ public class QangoTUI {
     public QangoTUI(){
         board = new Qango6Board();
         showBoard = zoomed -> zoomed? board.toBigString() : board.toString();
+        playerNames = new EnumMap<>(Player.class);
+        playerNames.put(PLAYER1, PLAYER1.getDefaultPlayerName());
+        playerNames.put(PLAYER2, PLAYER2.getDefaultPlayerName());
     }
 
     public void start(){
@@ -59,7 +65,7 @@ public class QangoTUI {
 
         System.out.println(showBoard.apply(zoomed));
         if(board.playerWon(currentPlayer, lastMove)){
-            System.out.printf("Congratulation %s, you won!\n", board.getPlayerName(currentPlayer));
+            System.out.printf("Congratulation %s, you won!\n", playerNames.get(currentPlayer));
         }else{
             System.out.println("It's a draw, well played!");
         }
@@ -67,7 +73,7 @@ public class QangoTUI {
 
     private Coordinate askForMove(Player player){
         do{
-            String moveChosen = askForString(String.format("%s, what is your next move? ", board.getPlayerName(player))).trim().toLowerCase();
+            String moveChosen = askForString(String.format("%s, what is your next move? ", playerNames.get(player))).trim().toLowerCase();
             if(moveChosen.length() != 2){
                 System.out.println("Please enter the location in a notation like: a1");
             }else{
@@ -90,8 +96,8 @@ public class QangoTUI {
     }
 
     private void setPlayerNames(){
-        board.setPlayerName(PLAYER1, askForString("input name for player 1(white): "));
-        board.setPlayerName(PLAYER2, askForString("input name for player 2(black): "));
+        playerNames.put(PLAYER1, askForString("input name for player 1(white): "));
+        playerNames.put(PLAYER2, askForString("input name for player 2(black): "));
     }
 }
 

@@ -6,9 +6,10 @@ public class Field {
     private static final String FIELD_OCCUPIED = " O ";
     private static final String FIELD_EMPTY    = "   ";
     private static final String ZOOMED_FIELD_PART = "   ";
-    private static final String ZOOMED_FORMAT = "%1$s%1$s%1$s\n" +
-                                                "%1$s%2$s%1$s\n" +
-                                                "%1$s%1$s%1$s";
+    private static final String ZOOMED_FORMAT = """
+            %1$s%1$s%1$s
+            %1$s%2$s%1$s
+            %1$s%1$s%1$s""";
 
     private final FieldColor color;
 

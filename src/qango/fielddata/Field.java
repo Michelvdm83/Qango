@@ -23,7 +23,7 @@ public class Field {
     public boolean hasPlayer(){
         return player != null;
     }
-
+    //1 functie van te maken door Optional te gebruiken?
     public Player getPlayer() {
         return player;
     }

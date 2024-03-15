@@ -10,6 +10,7 @@ import static qango.Player.*;
 public class QangoTUI {
     private final Qango6Board board;
     private final Function<Boolean, String> showBoard;
+    // maybe change above to: Consumer<Boolean> showBoard = zoomed -> System.out.println(zoomed? board.toBigString() : board.toString());
     private boolean zoomed = false;
 
     private final EnumMap<Player, String> playerNames;
@@ -79,33 +80,28 @@ public class QangoTUI {
             }else{
                 int row = moveChosen.charAt(0)-'a';
                 int column = moveChosen.charAt(1)-'0';
-                Coordinate chosenCoordinate = new Coordinate(row, column);
-
-                try {
+                if(board.locationOnBoard(row, column)) {
+                    Coordinate chosenCoordinate = new Coordinate(row, column);
                     if (board.locationTaken(chosenCoordinate)) {
                         System.out.println("Please enter an empty location");
                     } else {
                         return chosenCoordinate;
                     }
-                }catch (IllegalArgumentException e){
-                    System.out.println(e.getMessage());
-                    System.out.println("Please enter valid locations only!");
+                }else{
+                    System.out.println("This is not a valid location");
                 }
             }
         }while(true);
     }
 
     private void setPlayerNames(){
-        playerNames.put(PLAYER1, askForString("input name for player 1(white): "));
-        playerNames.put(PLAYER2, askForString("input name for player 2(black): "));
+        for(Player player: Player.values()) {
+            String name;
+            do {
+                name = askForString(String.format("input name for %s(%s): ", player.getDefaultPlayerName(), player == PLAYER1 ? "white" : "black"));
+                playerNames.put(player, name);
+                if(name.isBlank())System.out.println(red.apply("Need more then only spaces"));//feels ugly, but best I can think of
+            }while(name.isBlank());
+        }
     }
 }
-
-/*
-to do:
-logische plek maken voor de ON_FIELD string en de string wanneer er geen player op een field staat
-keuze toevoegen voor normale grote of "ingezoomd" bord >>> adv deze keuze value setten, zodat toString automatisch het juiste teruggeeft
-"lengte" van een veld als variabele opslaan: is afhankelijk van bovenstaande keuze
-coordinaten laten lopen van 1 tot 6 ipv 0 tot 5
-mogelijk toBigString ipv StringBuilder[] met stream hetzelfde te krijgen?
- */
